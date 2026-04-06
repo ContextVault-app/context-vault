@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Context Vault — Extract and transfer AI conversation context between Claude, ChatGPT, and Gemini. Never lose your work again." />
+<meta property="og:title" content="Context Vault — AI Context Extractor" />
+<meta property="og:description" content="Stop losing context when AI chats hit their limit. Extract, save, and transfer your conversation context in one click." />
+<meta property="og:type" content="website" />
+<title>Context Vault — AI Context Extractor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Fraunces:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:      #09090b;
+    --bg2:     #0d0f12;
+    --border:  #1e2530;
+    --amber:   #f5a623;
+    --amber2:  #ffc85a;
+    --green:   #3fb950;
+    --blue:    #79c0ff;
+    --muted:   #484f58;
+    --text:    #c9d1d9;
+    --bright:  #e6edf3;
+    --mono:    'IBM Plex Mono', monospace;
+    --serif:   'Fraunces', Georgia, serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── Noise overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Nav ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 40px;
+    background: rgba(9,9,11,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .nav-mark {
+    font-size: 20px;
+    color: var(--amber);
+    letter-spacing: -2px;
+    line-height: 1;
+  }
+
+  .nav-name {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--bright);
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .nav-links a:hover { color: var(--bright); }
+
+  .nav-cta {
+    background: var(--amber) !important;
+    color: #09090b !important;
+    padding: 7px 16px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+
+  .nav-cta:hover { opacity: 0.88; }
+
+  /* ── Hero ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+    position: relative;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(245,166,35,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-label {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--amber);
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.1s forwards;
+  }
+
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(42px, 7vw, 80px);
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--bright);
+    max-width: 800px;
+    margin-bottom: 12px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.2s forwards;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--amber);
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 480px;
+    line-height: 1.8;
+    margin: 20px auto 40px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.35s forwards;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.5s forwards;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--amber);
+    color: #09090b;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 13px 28px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 0 24px rgba(245,166,35,0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 32px rgba(245,166,35,0.5);
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 13px 24px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    text-decoration: none;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .btn-ghost:hover { color: var(--bright); border-color: #30363d; }
+
+  .hero-meta {
+    margin-top: 48px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.65s forwards;
+  }
+
+  .hero-meta span { color: var(--green); }
+
+  /* ── Problem ── */
+  .problem {
+    padding: 100px 24px;
+    text-align: center;
+    border-top: 1px solid var(--border);
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--amber);
+    margin-bottom: 20px;
+  }
+
+  .problem h2 {
+    font-family: var(--serif);
+    font-size: clamp(28px, 4vw, 46px);
+    font-weight: 700;
+    color: var(--bright);
+    max-width: 600px;
+    margin: 0 auto 16px;
+    line-height: 1.2;
+  }
+
+  .problem h2 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--muted);
+  }
+
+  .problem p {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.9;
+  }
+
+  /* ── How it works ── */
+  .how {
+    padding: 100px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .how-header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .how-header h2 {
+    font-family: var(--serif);
+    font-size: clamp(26px, 3.5vw, 40px);
+    color: var(--bright);
+    margin-top: 12px;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+
+  .step {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 32px 28px;
+    position: relative;
+  }
+
+  .step:first-child { border-radius: 8px 0 0 8px; }
+  .step:last-child  { border-radius: 0 8px 8px 0; }
+
+  .step-num {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .step-icon {
+    font-size: 28px;
+    color: var(--amber);
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .step h3 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--bright);
+    margin-bottom: 10px;
+  }
+
+  .step p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .step-arrow {
+    position: absolute;
+    right: -18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--border);
+    font-size: 20px;
+    z-index: 1;
+  }
+
+  /* ── Features ── */
+  .features {
+    padding: 100px 24px;
+    border-top: 1px solid var(--border);
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .features-header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .features-header h2 {
+    font-family: var(--serif);
+    font-size: clamp(26px, 3.5vw, 40px);
+    color: var(--bright);
+    margin-top: 12px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .feature {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+    transition: border-color 0.2s;
+  }
+
+  .feature:hover { border-color: #30363d; }
+
+  .feature-icon {
+    font-size: 20px;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .feature h3 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--bright);
+    margin-bottom: 8px;
+  }
+
+  .feature p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  /* ── Context types ── */
+  .context-types {
+    padding: 80px 24px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .context-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .context-inner h2 {
+    font-family: var(--serif);
+    font-size: clamp(24px, 3vw, 36px);
+    color: var(--bright);
+    margin: 12px 0 48px;
+  }
+
+  .cards-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .ctx-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    text-align: left;
+  }
+
+  .ctx-icon { font-size: 16px; margin-bottom: 10px; display: block; }
+  .ctx-name { font-size: 9px; letter-spacing: 2px; color: var(--muted); margin-bottom: 6px; }
+  .ctx-desc { font-size: 11px; color: #484f58; line-height: 1.7; }
+
+  /* ── Pricing ── */
+  .pricing {
+    padding: 100px 24px;
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .pricing h2 {
+    font-family: var(--serif);
+    font-size: clamp(26px, 3.5vw, 40px);
+    color: var(--bright);
+    margin: 12px 0 48px;
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    text-align: left;
+  }
+
+  .plan {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 32px;
+  }
+
+  .plan-pro {
+    border-color: var(--amber);
+    background: #12100a;
+    position: relative;
+  }
+
+  .plan-badge {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--amber);
+    color: #09090b;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 3px 12px;
+    border-radius: 20px;
+  }
+
+  .plan-name {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .plan-price {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--bright);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .plan-price sup {
+    font-size: 16px;
+    vertical-align: top;
+    margin-top: 6px;
+  }
+
+  .plan-period {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+
+  .plan-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .plan-features li {
+    font-size: 12px;
+    color: var(--text);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .plan-features li::before {
+    content: '·';
+    color: var(--amber);
+    flex-shrink: 0;
+  }
+
+  .plan-features li.dim { color: var(--muted); }
+  .plan-features li.dim::before { color: var(--border); }
+
+  .plan-btn {
+    display: block;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 11px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+
+  .plan-btn-primary {
+    background: var(--amber);
+    color: #09090b;
+  }
+
+  .plan-btn-primary:hover { opacity: 0.88; }
+
+  .plan-btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .plan-btn-ghost:hover { color: var(--bright); border-color: #30363d; }
+
+  .pricing-note {
+    margin-top: 24px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .pricing-note a { color: var(--amber); text-decoration: none; }
+
+  /* ── Supported sites ── */
+  .supported {
+    padding: 60px 24px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .supported p {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  .sites {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .site {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .site-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 4px var(--green); }
+
+  /* ── FAQ ── */
+  .faq {
+    padding: 100px 24px;
+    border-top: 1px solid var(--border);
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .faq-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .faq-header h2 {
+    font-family: var(--serif);
+    font-size: clamp(24px, 3vw, 36px);
+    color: var(--bright);
+    margin-top: 10px;
+  }
+
+  .faq-item {
+    border-top: 1px solid var(--border);
+    padding: 20px 0;
+  }
+
+  .faq-q {
+    font-size: 13px;
+    color: var(--bright);
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+
+  .faq-a {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+
+  .faq-a a { color: var(--amber); text-decoration: none; }
+
+  /* ── CTA ── */
+  .cta {
+    padding: 120px 24px;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+
+  .cta-glow {
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 500px;
+    height: 300px;
+    background: radial-gradient(ellipse at bottom, rgba(245,166,35,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cta h2 {
+    font-family: var(--serif);
+    font-size: clamp(30px, 5vw, 56px);
+    color: var(--bright);
+    max-width: 560px;
+    margin: 0 auto 16px;
+    line-height: 1.1;
+  }
+
+  .cta h2 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--amber);
+  }
+
+  .cta p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 40px;
+  }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .footer-logo span { color: var(--amber); font-size: 16px; letter-spacing: -1px; }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+  }
+
+  .footer-links a {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .footer-links a:hover { color: var(--bright); }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 680px) {
+    nav { padding: 14px 20px; }
+    .nav-links { display: none; }
+    .steps { grid-template-columns: 1fr; }
+    .step { border-radius: 0; }
+    .step:first-child { border-radius: 8px 8px 0 0; }
+    .step:last-child  { border-radius: 0 0 8px 8px; }
+    .step-arrow { display: none; }
+    .features-grid { grid-template-columns: 1fr; }
+    .cards-row { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav>
+  <a href="#" class="nav-logo">
+    <span class="nav-mark">⟦⟧</span>
+    <span class="nav-name">CONTEXT VAULT</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how-it-works">HOW IT WORKS</a></li>
+    <li><a href="#pricing">PRICING</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="YOUR_CHROME_STORE_URL" class="nav-cta">INSTALL FREE →</a></li>
+  </ul>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <p class="hero-label">CHROME EXTENSION · CLAUDE · CHATGPT · GEMINI</p>
+  <h1>Never lose your <em>AI context</em> again</h1>
+  <p class="hero-sub">When your AI chat hits its limit, all that work shouldn't vanish. Context Vault extracts everything that matters and hands it off to your next conversation.</p>
+  <div class="hero-actions">
+    <a href="YOUR_CHROME_STORE_URL" class="btn-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      ADD TO CHROME — FREE
+    </a>
+    <a href="#how-it-works" class="btn-ghost">SEE HOW IT WORKS</a>
+  </div>
+  <p class="hero-meta"><span>●</span> Free · 5 extractions/month · No account needed</p>
+</section>
+
+<!-- ── Problem ── -->
+<section class="problem">
+  <div class="reveal">
+    <p class="section-label">THE PROBLEM</p>
+    <h2>You built something great. <em>Then the chat ended.</em></h2>
+    <p>AI conversations have limits. When they're full, starting a new chat means explaining everything from scratch — your stack, your decisions, your constraints, what you tried. Every time.</p>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section class="how" id="how-it-works">
+  <div class="how-header reveal">
+    <p class="section-label">HOW IT WORKS</p>
+    <h2>Three steps. Ten seconds.</h2>
+  </div>
+  <div class="steps reveal">
+    <div class="step">
+      <p class="step-num">01</p>
+      <span class="step-icon">↓</span>
+      <h3>IMPORT</h3>
+      <p>Click the floating button on any AI page, or use ↓ Import Tab in the popup. Context Vault reads the conversation automatically.</p>
+      <span class="step-arrow">›</span>
+    </div>
+    <div class="step">
+      <p class="step-num">02</p>
+      <span class="step-icon">◈</span>
+      <h3>EXTRACT</h3>
+      <p>One click extracts goals, decisions, technical state, key facts, and next steps into structured cards.</p>
+      <span class="step-arrow">›</span>
+    </div>
+    <div class="step">
+      <p class="step-num">03</p>
+      <span class="step-icon">→</span>
+      <h3>HANDOFF</h3>
+      <p>Copy the generated prompt and paste it at the start of your new chat. Continue exactly where you left off.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Context types ── -->
+<section class="context-types">
+  <div class="context-inner">
+    <p class="section-label reveal">WHAT GETS EXTRACTED</p>
+    <h2 class="reveal">Every detail that matters</h2>
+    <div class="cards-row reveal">
+      <div class="ctx-card">
+        <span class="ctx-icon" style="color:#f5a623">◎</span>
+        <p class="ctx-name">GOAL</p>
+        <p class="ctx-desc">The main objective of the conversation — what you were trying to build or solve.</p>
+      </div>
+      <div class="ctx-card">
+        <span class="ctx-icon" style="color:#7ee8a2">✦</span>
+        <p class="ctx-name">DECISIONS</p>
+        <p class="ctx-desc">Key choices made along the way — architecture picks, approaches rejected, trade-offs accepted.</p>
+      </div>
+      <div class="ctx-card">
+        <span class="ctx-icon" style="color:#79c0ff">⌥</span>
+        <p class="ctx-name">TECHNICAL STATE</p>
+        <p class="ctx-desc">Current code state, libraries in use, file structure, APIs integrated.</p>
+      </div>
+      <div class="ctx-card">
+        <span class="ctx-icon" style="color:#d2a8ff">◈</span>
+        <p class="ctx-name">KEY FACTS</p>
+        <p class="ctx-desc">Constraints, requirements, and context established during the conversation.</p>
+      </div>
+      <div class="ctx-card">
+        <span class="ctx-icon" style="color:#ff9f9f">→</span>
+        <p class="ctx-name">NEXT STEPS</p>
+        <p class="ctx-desc">What was being worked on next, what's still pending, what to tackle first.</p>
+      </div>
+      <div class="ctx-card">
+        <span class="ctx-icon" style="color:#ffd700">⊛</span>
+        <p class="ctx-name">PREFERENCES</p>
+        <p class="ctx-desc">Style choices, tone, formatting preferences, and approach preferences.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ── -->
+<section class="features">
+  <div class="features-header reveal">
+    <p class="section-label">FEATURES</p>
+    <h2>Built for how you actually work</h2>
+  </div>
+  <div class="features-grid reveal">
+    <div class="feature">
+      <span class="feature-icon" style="color:#f5a623">⊕</span>
+      <h3>MULTIPLE CONVERSATIONS</h3>
+      <p>Track several AI chats in parallel. Combine context from multiple conversations into one handoff prompt.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-icon" style="color:#79c0ff">↓</span>
+      <h3>AUTO-IMPORT</h3>
+      <p>Click "Import Tab" and Context Vault reads the conversation directly — no copy-pasting required.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-icon" style="color:#7ee8a2">⟦⟧</span>
+      <h3>WORKS EVERYWHERE</h3>
+      <p>Claude, ChatGPT, and Gemini all supported. Switch between AI providers mid-project without losing context.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-icon" style="color:#d2a8ff">◈</span>
+      <h3>STRUCTURED OUTPUT</h3>
+      <p>Context is organized into categories, not a wall of text. Easy to review, edit, and copy individual sections.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Supported sites ── -->
+<section class="supported">
+  <p class="reveal">WORKS ON</p>
+  <div class="sites reveal">
+    <div class="site"><span class="site-dot"></span>claude.ai</div>
+    <div class="site"><span class="site-dot"></span>chatgpt.com</div>
+    <div class="site"><span class="site-dot"></span>gemini.google.com</div>
+  </div>
+</section>
+
+<!-- ── Pricing ── -->
+<section class="pricing" id="pricing">
+  <p class="section-label reveal">PRICING</p>
+  <h2 class="reveal">Simple. No surprises.</h2>
+  <div class="pricing-grid reveal">
+
+    <div class="plan">
+      <p class="plan-name">FREE</p>
+      <p class="plan-price">$0</p>
+      <p class="plan-period">forever</p>
+      <ul class="plan-features">
+        <li>5 extractions per month</li>
+        <li>All 3 AI sites supported</li>
+        <li>Multiple conversations</li>
+        <li>Combined handoff prompts</li>
+        <li class="dim">Unlimited extractions</li>
+        <li class="dim">No API key needed</li>
+      </ul>
+      <a href="YOUR_CHROME_STORE_URL" class="plan-btn plan-btn-ghost">INSTALL FREE</a>
+    </div>
+
+    <div class="plan plan-pro">
+      <span class="plan-badge">MOST POPULAR</span>
+      <p class="plan-name">PRO</p>
+      <p class="plan-price"><sup>$</sup>3.99</p>
+      <p class="plan-period">per month · cancel anytime</p>
+      <ul class="plan-features">
+        <li>Unlimited extractions</li>
+        <li>All 3 AI sites supported</li>
+        <li>Multiple conversations</li>
+        <li>Combined handoff prompts</li>
+        <li>No API key needed</li>
+        <li>Priority support</li>
+      </ul>
+      <a href="YOUR_LEMON_SQUEEZY_CHECKOUT_URL" class="plan-btn plan-btn-primary">START 7-DAY TRIAL →</a>
+    </div>
+
+  </div>
+  <p class="pricing-note reveal">
+    7-day free trial · No credit card required to start ·
+    <a href="terms.html">Money-back guarantee</a>
+  </p>
+</section>
+
+<!-- ── FAQ ── -->
+<section class="faq" id="faq">
+  <div class="faq-header reveal">
+    <p class="section-label">FAQ</p>
+    <h2>Common questions</h2>
+  </div>
+
+  <div class="faq-item reveal">
+    <p class="faq-q">Does Context Vault store my conversations?</p>
+    <p class="faq-a">No. Your conversation text is sent directly to our API for processing and is never stored. We only keep an anonymous usage counter to track your monthly free tier usage. Read our <a href="privacy.html">Privacy Policy</a> for full details.</p>
+  </div>
+
+  <div class="faq-item reveal">
+    <p class="faq-q">Do I need an Anthropic API key?</p>
+    <p class="faq-a">No — not for either tier. We handle the API calls on our end. You just use the extension.</p>
+  </div>
+
+  <div class="faq-item reveal">
+    <p class="faq-q">What counts as an "extraction"?</p>
+    <p class="faq-a">Each time you click "Extract Context" on a conversation counts as one extraction. Importing a conversation, viewing context cards, and copying handoff prompts are all free and unlimited.</p>
+  </div>
+
+  <div class="faq-item reveal">
+    <p class="faq-q">Can I cancel my Pro subscription anytime?</p>
+    <p class="faq-a">Yes. Cancel anytime from your Lemon Squeezy customer portal. You keep Pro access until the end of your billing period. We also offer a 7-day money-back guarantee — no questions asked.</p>
+  </div>
+
+  <div class="faq-item reveal">
+    <p class="faq-q">What happens if you shut down the service?</p>
+    <p class="faq-a">We'll give at least 30 days notice and issue prorated refunds to all active Pro subscribers. This is written into our <a href="terms.html">Terms of Service</a>.</p>
+  </div>
+
+  <div class="faq-item reveal">
+    <p class="faq-q">Which AI platforms are supported?</p>
+    <p class="faq-a">Claude (claude.ai), ChatGPT (chatgpt.com), and Gemini (gemini.google.com). We plan to add more based on user requests.</p>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta">
+  <div class="cta-glow"></div>
+  <h2 class="reveal">Start for <em>free</em> today</h2>
+  <p class="reveal">No account. No credit card. Install and start saving context in 30 seconds.</p>
+  <div class="reveal">
+    <a href="YOUR_CHROME_STORE_URL" class="btn-primary">
+      ADD TO CHROME — FREE →
+    </a>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-logo">
+    <span>⟦⟧</span>
+    Context Vault · Made in Portugal 🇵🇹
+  </div>
+  <ul class="footer-links">
+    <li><a href="terms.html">TERMS</a></li>
+    <li><a href="privacy.html">PRIVACY</a></li>
+    <li><a href="mailto:YOUR_EMAIL">SUPPORT</a></li>
+  </ul>
+</footer>
+
+<script>
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => {
+      if (el.isIntersecting) {
+        el.target.classList.add('visible');
+        observer.unobserve(el.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
