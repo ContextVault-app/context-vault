@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Privacy Policy — Context Vault</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #fafaf8;
+    color: #1a1a1a;
+    line-height: 1.8;
+    padding: 40px 20px 80px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  .logo { font-family: 'Courier New', monospace; font-size: 22px; color: #f5a623; letter-spacing: -1px; margin-bottom: 8px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+  .meta { font-size: 13px; color: #888; margin-bottom: 48px; }
+  h2 { font-size: 16px; font-weight: 700; margin: 36px 0 10px; text-transform: uppercase; letter-spacing: 1px; color: #111; }
+  h3 { font-size: 14px; font-weight: 700; margin: 20px 0 8px; color: #333; }
+  p { font-size: 15px; color: #333; margin-bottom: 14px; }
+  ul { margin: 0 0 14px 20px; }
+  ul li { font-size: 15px; color: #333; margin-bottom: 6px; }
+  a { color: #f5a623; }
+  .highlight { background: #fff8ec; border-left: 3px solid #f5a623; padding: 12px 16px; border-radius: 0 4px 4px 0; margin: 20px 0; }
+  .highlight p { margin: 0; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 14px; }
+  th { background: #f0f0ec; text-align: left; padding: 10px 12px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #555; }
+  td { padding: 10px 12px; border-bottom: 1px solid #e8e8e4; color: #333; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  hr { border: none; border-top: 1px solid #e5e5e5; margin: 40px 0; }
+  .footer { font-size: 12px; color: #aaa; margin-top: 60px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="logo">⟦⟧</div>
+  <h1>Privacy Policy</h1>
+  <p class="meta">Context Vault · Last updated: <strong>REPLACE_WITH_DATE</strong> · Applies to the Chrome extension and associated API</p>
+
+  <div class="highlight">
+    <p><strong>Short version:</strong> We do not store your conversation content. We store only an anonymous usage counter and, if you subscribe, your license key. We do not sell your data to anyone.</p>
+  </div>
+
+  <h2>1. Who Is the Data Controller</h2>
+  <p><strong>REPLACE_WITH_YOUR_NAME</strong><br />
+  Portugal, European Union<br />
+  Email: <strong>REPLACE_WITH_YOUR_EMAIL</strong></p>
+  <p>As an individual operator based in the EU, we act as the data controller for all personal data processed in connection with Context Vault.</p>
+
+  <h2>2. What Data We Collect and Why</h2>
+
+  <table>
+    <tr>
+      <th>Data</th>
+      <th>Why</th>
+      <th>Legal Basis (GDPR)</th>
+      <th>Retention</th>
+    </tr>
+    <tr>
+      <td><strong>Anonymous user ID</strong> (UUID generated locally in your browser)</td>
+      <td>To track monthly free tier usage (5 extractions/month) without requiring an account</td>
+      <td>Legitimate interest (service delivery)</td>
+      <td>~2 months (auto-expires in Cloudflare KV)</td>
+    </tr>
+    <tr>
+      <td><strong>Usage counter</strong> (number of extractions this month)</td>
+      <td>To enforce the free tier limit</td>
+      <td>Legitimate interest (service delivery)</td>
+      <td>~2 months (auto-expires)</td>
+    </tr>
+    <tr>
+      <td><strong>License key</strong> (Pro subscribers only)</td>
+      <td>To validate Pro subscription status</td>
+      <td>Contract performance</td>
+      <td>Cached for 48h; deleted on cancellation</td>
+    </tr>
+    <tr>
+      <td><strong>Payment data</strong> (Pro subscribers only)</td>
+      <td>To process subscription payments</td>
+      <td>Contract performance</td>
+      <td>Managed by Lemon Squeezy — see their privacy policy</td>
+    </tr>
+  </table>
+
+  <h3>What We Do NOT Collect</h3>
+  <ul>
+    <li>The content of your AI conversations</li>
+    <li>Your name, email address (unless you contact us directly)</li>
+    <li>Browser history or activity outside of supported AI sites</li>
+    <li>IP addresses (Cloudflare Workers do not log these by default)</li>
+    <li>Any data from minors</li>
+  </ul>
+
+  <h2>3. How Conversation Text Is Processed</h2>
+  <p>When you trigger a context extraction, the conversation text is sent from your browser to our Cloudflare Worker, which immediately forwards it to Anthropic's API for processing. The text is <strong>not stored</strong> on our servers at any point — it flows through in memory only.</p>
+  <p>Anthropic processes the text according to their own <a href="https://www.anthropic.com/privacy" target="_blank">Privacy Policy</a>. API usage data is subject to Anthropic's data retention policies (currently 30 days for API logs by default).</p>
+
+  <h2>4. Third-Party Services</h2>
+
+  <table>
+    <tr>
+      <th>Service</th>
+      <th>Purpose</th>
+      <th>Data Shared</th>
+      <th>Privacy Policy</th>
+    </tr>
+    <tr>
+      <td><strong>Anthropic</strong></td>
+      <td>AI context extraction</td>
+      <td>Conversation text (transient)</td>
+      <td><a href="https://www.anthropic.com/privacy" target="_blank">anthropic.com/privacy</a></td>
+    </tr>
+    <tr>
+      <td><strong>Cloudflare</strong></td>
+      <td>API infrastructure &amp; KV storage</td>
+      <td>Anonymous UUID, usage counter</td>
+      <td><a href="https://www.cloudflare.com/privacypolicy/" target="_blank">cloudflare.com/privacypolicy</a></td>
+    </tr>
+    <tr>
+      <td><strong>Lemon Squeezy</strong></td>
+      <td>Subscription payments</td>
+      <td>Payment details, email (Pro only)</td>
+      <td><a href="https://www.lemonsqueezy.com/privacy" target="_blank">lemonsqueezy.com/privacy</a></td>
+    </tr>
+  </table>
+
+  <p>All third-party providers are either based in the EU or have signed Standard Contractual Clauses (SCCs) for data transfers outside the EU.</p>
+
+  <h2>5. Your Rights Under GDPR</h2>
+  <p>As an EU resident, you have the following rights:</p>
+  <ul>
+    <li><strong>Right of access</strong> — request a copy of data we hold about you</li>
+    <li><strong>Right to rectification</strong> — request correction of inaccurate data</li>
+    <li><strong>Right to erasure</strong> ("right to be forgotten") — request deletion of your data</li>
+    <li><strong>Right to restriction</strong> — request that we limit processing of your data</li>
+    <li><strong>Right to portability</strong> — receive your data in a machine-readable format</li>
+    <li><strong>Right to object</strong> — object to processing based on legitimate interest</li>
+  </ul>
+  <p>To exercise any of these rights, email <strong>REPLACE_WITH_YOUR_EMAIL</strong> with the subject "GDPR Request". We will respond within <strong>30 days</strong> as required by law.</p>
+
+  <h3>Deleting Your Data (Free Tier)</h3>
+  <p>To delete your anonymous usage data, open the Context Vault extension settings and click <strong>"Delete My Data"</strong>. This sends a deletion request to our Worker which removes your UUID and usage counter from Cloudflare KV immediately.</p>
+
+  <h3>Deleting Your Data (Pro Subscribers)</h3>
+  <p>Cancel your subscription via the Lemon Squeezy customer portal, then email us to request deletion of your license key cache. Lemon Squeezy retains transaction records for legal/tax purposes; contact them directly for those records.</p>
+
+  <h2>6. Data Security</h2>
+  <p>We take reasonable measures to protect your data:</p>
+  <ul>
+    <li>All data in transit is encrypted via HTTPS/TLS</li>
+    <li>API keys are stored as encrypted secrets in Cloudflare Workers (never exposed to clients)</li>
+    <li>Cloudflare KV data is encrypted at rest</li>
+    <li>We do not store conversation content</li>
+  </ul>
+  <p>However, no system is 100% secure. If you become aware of a security issue, please disclose it responsibly to <strong>REPLACE_WITH_YOUR_EMAIL</strong>.</p>
+
+  <h2>7. Children's Privacy</h2>
+  <p>Context Vault is not directed at children under 16. We do not knowingly collect data from children. If you believe a child has provided us with data, contact us and we will delete it immediately.</p>
+
+  <h2>8. Changes to This Policy</h2>
+  <p>We may update this Privacy Policy from time to time. We will notify Pro subscribers by email before material changes take effect. The "Last updated" date at the top of this page will always reflect the most recent version.</p>
+
+  <h2>9. Complaints</h2>
+  <p>If you are unsatisfied with how we handle your data, you have the right to lodge a complaint with your national data protection authority. In Portugal, this is the <strong>CNPD</strong> (Comissão Nacional de Proteção de Dados) at <a href="https://www.cnpd.pt" target="_blank">cnpd.pt</a>.</p>
+
+  <h2>10. Contact</h2>
+  <p>For any privacy-related questions:<br />
+  Email: <strong>REPLACE_WITH_YOUR_EMAIL</strong><br />
+  Response time: within 30 days (GDPR requirement)</p>
+
+  <hr />
+  <div class="footer">Context Vault · Portugal, EU · <a href="terms.html">Terms of Service</a></div>
+
+</div>
+</body>
+</html>
